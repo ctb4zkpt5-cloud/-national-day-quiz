@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>مسابقة اليوم الوطني السعودي</title>
+
+<style>
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #006c35, #0b8f4d);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #123;
+}
+
+.container {
+  width: 92%;
+  max-width: 650px;
+  background: white;
+  border-radius: 25px;
+  padding: 30px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.25);
+  text-align: center;
+}
+
+.screen {
+  display: none;
+}
+
+.screen.active {
+  display: block;
+}
+
+h1 {
+  color: #006c35;
+  font-size: 32px;
+  margin-bottom: 10px;
+}
+
+h2 {
+  color: #006c35;
+}
+
+.subtitle {
+  color: #666;
+  margin-bottom: 25px;
+}
+
+button {
+  width: 100%;
+  padding: 15px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 14px;
+  font-size: 17px;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.main-btn {
+  background: #006c35;
+  color: white;
+}
+
+.main-btn:hover {
+  background: #005329;
+  transform: scale(1.02);
+}
+
+.answer {
+  background: #f1f5f3;
+  color: #222;
+  border: 2px solid #d8e3dd;
+}
+
+.answer:hover {
+  background: #e1eee7;
+}
+
+.correct {
+  background: #b9efc9 !important;
+  border-color: #219653 !important;
+}
+
+.wrong {
+  background: #ffd0d0 !important;
+  border-color: #d63031 !important;
+}
+
+.question-number {
+  color: #777;
+  margin-bottom: 10px;
+}
+
+.question {
+  font-size: 22px;
+  font-weight: bold;
+  margin: 20px 0;
+  line-height: 1.6;
+}
+
+.feedback {
+  min-height: 28px;
+  font-weight: bold;
+  margin: 12px 0;
+}
+
+.score {
+  font-size: 50px;
+  font-weight: bold;
+  color: #006c35;
+  margin: 20px;
+}
+
+.progress {
+  height: 10px;
+  background: #ddd;
+  border-radius: 10px;
+  overflow: hidden;
+  margin-bottom: 20px;
+}
+
+.progress-bar {
+  height: 100%;
+  background: #006c35;
+  width: 0%;
+  transition: 0.3s;
+}
+
+.saudi {
+  font-size: 55px;
+  margin-bottom: 5px;
+}
+
+.small {
+  color: #777;
+  font-size: 14px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- الصفحة الرئيسية -->
+  <div id="home" class="screen active">
+    <div class="saudi">🇸🇦</div>
+
+    <h1>مسابقة اليوم الوطني السعودي</h1>
+
+    <p class="subtitle">
+     اختبري معلوماتك عن المملكة العربية السعودية
+  </p>
+<p class="name"> إعداد: رنيم خالد٥/٣</p>
+    
+    <button class="main-btn" onclick="showScreen('rules')">
+      ابدأ المسابقة
+    </button>
+  </div>
+
+
+  <!-- التعليمات -->
+  <div id="rules" class="screen">
+
+    <h2>طريقة المسابقة</h2>
+
+    <p>• تحتوي المسابقة على 20 سؤالًا.</p>
+    <p>• اختر إجابة واحدة لكل سؤال.</p>
+    <p>• كل إجابة صحيحة = نقطة واحدة.</p>
+    <p>• لا يوجد مؤقت، خذ وقتك وفكر جيدًا.</p>
+
+    <button class="main-btn" onclick="startQuiz()">
+      ابدأ الآن 🇸🇦
+    </button>
+
+  </div>
+
+
+  <!-- المسابقة -->
+  <div id="quiz" class="screen">
+
+    <div class="question-number" id="questionNumber"></div>
+
+    <div class="progress">
+      <div class="progress-bar" id="progressBar"></div>
+    </div>
+
+    <div class="question" id="question"></div>
+
+    <div id="answers"></div>
+
+    <div class="feedback" id="feedback"></div>
+
+    <button
+      id="nextBtn"
+      class="main-btn"
+      onclick="nextQuestion()"
+      style="display:none;">
+      السؤال التالي
+    </button>
+
+  </div>
+
+
+  <!-- النتيجة -->
+  <div id="result" class="screen">
+
+    <div class="saudi">🇸🇦</div>
+
+    <h1>انتهت المسابقة!</h1>
+
+    <p>نتيجتك:</p>
+
+    <div class="score" id="score"></div>
+
+    <p id="resultMessage"></p>
+
+    <button class="main-btn" onclick="startQuiz()">
+      إعادة المسابقة
+    </button>
+
+  </div>
+
+</div>
+
+
+<script>
+
+const questions = [
+
+  {
+    question: "ما التاريخ الذي يُحتفل فيه باليوم الوطني السعودي؟",
+    answers: [
+      "23 سبتمبر",
+      "22 فبراير",
+      "1 يناير",
+      "23 مارس"
+    ],
+    correct: 0
+  },
+
+  {
+    question: "في أي عام أُعلن توحيد المملكة العربية السعودية؟",
+    answers: [
+      "1932م",
+      "1902م",
+      "1727م",
+      "1953م"
+    ],
+    correct: 0
+  },
+
+  {
+    question: "من هو مؤسس المملكة العربية السعودية الحديثة؟",
+    answers: [
+      "الملك عبدالعزيز آل سعود",
+      "الملك سعود بن عبدالعزيز",
+      "الملك فيصل بن عبدالعزيز",
+      "الملك خالد بن عبدالعزيز"
+    ],
+    correct: 0
+  },
+
+  {
+    question: "ما عاصمة المملكة العربية السعودية؟",
+    answers: [
+      "الرياض",
+      "جدة",
+      "مكة المكرمة",
+      "المدينة المنورة"
+    ],
+    correct: 0
+  },
+
+  {
+    question: "كم عدد المناطق الإدارية في المملكة العربية السعودية؟",
+    answers: [
+      "13 منطقة",
+      "10 مناطق",
+      "15 منطقة",
+      "20 منطقة"
+    ],
+    correct: 0
+  },
+
+  {
+    question: "ما أكبر منطقة إدارية في المملكة من حيث المساحة؟",
+    answers: [
+      "المنطقة الشرقية",
+      "منطقة الرياض",
+      "منطقة مكة المكرمة",
+      "منطقة المدينة المنورة"
+    ],
+    correct: 0
+  },
+
+  {
+    question: "ما اسم أعلى قمة جبلية في المملكة العربية السعودية؟",
+    answers: [
+      "جبل السودة",
+      "جبل أحد",
+      "جبل النور",
+      "جبل طويق"
+    ],
+    correct: 0
+  },
+
+  {
+    question: "ما البحر الذي يقع غرب المملكة العربية السعودية؟",
+    answers: [
+      "البحر الأحمر",
+      "الخليج العربي",
+      "بحر العرب",
+      "البحر المتوسط"
+    ],
+    correct: 0
+  },
+
+  {
+    question: "ما أكبر صحراء رملية متصلة في المملكة العربية السعودية؟",
+    answers: [
+      "الربع الخالي",
+      "النفود الكبير",
+      "الدهناء",
+      "صحراء النفود الصغير"
+    ],
+    correct: 0
+  },
+
+  {
+    question: "ما اسم السلسلة الجبلية التي تمتد على طول غرب المملكة؟",
+    answers: [
+      "جبال السروات",
+      "جبال طويق",
+      "جبال أجا",
+      "جبال سلمى"
+    ],
+    correct: 0
+  },
+
+  {
+    question: "في أي منطقة تقع آثار الحِجر (مدائن صالح)؟",
+    answers: [
+      "العلا",
+      "الرياض",
+      "الأحساء",
+      "جازان"
+    ],
+    correct: 0
+  },
+
+  {
+    question: "أي موقع سعودي أُدرج ضمن قائمة التراث العالمي لليونسكو؟",
+    answers: [
+      "حي الطريف في الدرعية",
+      "برج المملكة",
+      "نافورة جدة",
+      "مركز الملك عبدالعزيز الثقافي"
+    ],
+    correct: 0
+  },
+
+  {
+    question: "ما اسم المدينة التي تُعرف بأنها بوابة الحرمين الشريفين؟",
+    answers: [
+      "جدة",
+      "الرياض",
+      "أبها",
+      "الدمام"
+    ],
+    correct: 0
+  },
+
+  {
+    question: "ما المدينة التي يوجد فيها المسجد النبوي؟",
+    answers: [
+      "المدينة المنورة",
+      "مكة المكرمة",
+      "الطائف",
+      "تبوك"
+    ],
+    correct: 0
+  },
+
+  {
+    question: "ما المدينة التي يوجد فيها المسجد الحرام؟",
+    answers: [
+      "مكة المكرمة",
+      "المدينة المنورة",
+      "جدة",
+      "الطائف"
+    ],
+    correct: 0
+  },
+
+  {
+    question: "كم عدد المناطق الإدارية في المملكة؟",
+    answers: [
+      "13",
+      "12",
+      "15",
+      "10"
+    ],
+    correct: 0
+  },
+
+  {
+    question: "ما لون العلم السعودي؟",
+    answers: [
+      "الأخضر",
+      "الأحمر",
+      "الأزرق",
+      "الأبيض"
+    ],
+    correct: 0
+  },
+
+  {
+    question: "ما العنصران البارزان في العلم السعودي؟",
+    answers: [
+      "الشهادة والسيف",
+      "النخلة والسيف",
+      "الهلال والنجمة",
+      "الصقر والنخلة"
+    ],
+    correct: 0
+  },
+
+  {
+    question: "ما اسم رؤية المملكة التي أُطلقت عام 2016؟",
+    answers: [
+      "رؤية السعودية 2030",
+      "رؤية السعودية 2020",
+      "رؤية المملكة 2040",
+      "برنامج السعودية 2035"
+    ],
+    correct: 0
+  },
+
+  {
+    question: "ما الفرق الأساسي بين اليوم الوطني ويوم التأسيس؟",
+    answers: [
+      "اليوم الوطني يوافق توحيد المملكة عام 1932م، ويوم التأسيس يوافق تأسيس الدولة السعودية الأولى عام 1727م",
+      "كلاهما يحتفلان بالحدث نفسه",
+      "اليوم الوطني يوافق تأسيس الدولة السعودية الأولى، ويوم التأسيس يوافق توحيد المملكة",
+      "اليوم الوطني في فبراير ويوم التأسيس في سبتمبر"
+    ],
+    correct: 0
+  }
+
+];
+
+let currentQuestion = 0;
+let score = 0;
+let answered = false;
+
+
+function showScreen(id) {
+
+  document.querySelectorAll(".screen").forEach(screen => {
+    screen.classList.remove("active");
+  });
+
+  document.getElementById(id).classList.add("active");
+}
+
+
+function startQuiz() {
+
+  currentQuestion = 0;
+  score = 0;
+  answered = false;
+
+  showScreen("quiz");
+
+  showQuestion();
+}
+
+
+function showQuestion() {
+
+  answered = false;
+
+  const q = questions[currentQuestion];
+
+  document.getElementById("questionNumber").textContent =
+    "السؤال " + (currentQuestion + 1) + " من " + questions.length;
+
+  document.getElementById("question").textContent = q.question;
+
+  document.getElementById("feedback").textContent = "";
+
+  document.getElementById("nextBtn").style.display = "none";
+
+  const progress =
+    ((currentQuestion) / questions.length) * 100;
+
+  document.getElementById("progressBar").style.width =
+    progress + "%";
+
+  const answersDiv = document.getElementById("answers");
+
+  answersDiv.innerHTML = "";
+
+  q.answers.forEach((answer, index) => {
+
+    const button = document.createElement("button");
+
+    button.className = "answer";
+
+    button.textContent = answer;
+
+    button.onclick = () => checkAnswer(index, button);
+
+    answersDiv.appendChild(button);
+
+  });
+
+}
+
+
+function checkAnswer(index, button) {
+
+  if (answered) return;
+
+  answered = true;
+
+  const q = questions[currentQuestion];
+
+  const buttons =
+    document.querySelectorAll(".answer");
+
+  buttons.forEach(btn => {
+    btn.disabled = true;
+  });
+
+  if (index === q.correct) {
+
+    button.classList.add("correct");
+
+    score++;
+
+    document.getElementById("feedback").textContent =
+      "✅ إجابة صحيحة!";
+
+  } else {
+
+    button.classList.add("wrong");
+
+    buttons[q.correct].classList.add("correct");
+
+    document.getElementById("feedback").textContent =
+      "❌ إجابة غير صحيحة!";
+
+  }
+
+  document.getElementById("nextBtn").style.display =
+    "block";
+}
+
+
+function nextQuestion() {
+
+  currentQuestion++;
+
+  if (currentQuestion < questions.length) {
+
+    showQuestion();
+
+  } else {
+
+    showResult();
+
+  }
+
+}
+
+
+function showResult() {
+
+  showScreen("result");
+
+  document.getElementById("score").textContent =
+    score + " / " + questions.length;
+
+  let message = "";
+
+  if (score === 20) {
+
+    message = "🔥 مذهل! إجاباتك كلها صحيحة!";
+
+  } else if (score >= 15) {
+
+    message = "🇸🇦 ممتاز! معلوماتك عن المملكة قوية .";
+
+  } else if (score >= 10) {
+
+    message = "👏 نتيجة جميلة!.";
+
+  } else {
+
+    message = "حاولي مره ثانيه ✨.";
+
+  }
+
+  document.getElementById("resultMessage").textContent =
+    message;
+
+}
+
+</script>
+
+</body>
+</html>
